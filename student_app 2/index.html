@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+<title>Student Manager</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    background:#f0f0f0;
+}
+
+.container{
+
+    width:900px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    margin-top:20px;
+    border-radius:10px;
+}
+
+input{
+
+    padding:6px;
+    margin:4px;
+
+}
+
+button{
+
+    padding:6px 10px;
+    margin:4px;
+    cursor:pointer;
+
+}
+
+table{
+
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+
+}
+
+th,td{
+
+    border:1px solid gray;
+    padding:6px;
+    text-align:center;
+
+}
+
+th{
+
+    background:#ddd;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+<h2>Student Manager</h2>
+
+
+<!-- FORM -->
+
+<input id="id" placeholder="id">
+<input id="name" placeholder="name">
+<input id="year" placeholder="birth">
+<input id="major" placeholder="major">
+<input id="gpa" placeholder="gpa">
+<input id="classid" placeholder="class">
+
+<br>
+
+<button onclick="add()">Add</button>
+<button onclick="load()">Load</button>
+
+
+<br><br>
+
+<input id="searchtxt" placeholder="search name">
+
+<button onclick="search()">Search</button>
+
+<button onclick="stats()">Stats</button>
+
+<button onclick="exportcsv()">Export CSV</button>
+
+<div id="stats"></div>
+
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+<th>Name</th>
+<th>Birth</th>
+<th>Major</th>
+<th>GPA</th>
+<th>Class</th>
+<th>Delete</th>
+
+</tr>
+
+</thead>
+
+<tbody id="table"></tbody>
+
+</table>
+
+</div>
+
+
+
+<script>
+
+const API = "http://127.0.0.1:8000"
+
+
+function show(data){
+
+let s=""
+
+data.forEach(x=>{
+
+s += `
+<tr>
+
+<td>${x[0]}</td>
+<td>${x[1]}</td>
+<td>${x[2]}</td>
+<td>${x[3]}</td>
+<td>${x[4]}</td>
+<td>${x[5]}</td>
+
+<td>
+<button onclick="del('${x[0]}')">
+Delete
+</button>
+</td>
+
+</tr>
+`
+
+})
+
+document.getElementById("table").innerHTML = s
+
+}
+
+
+
+async function load(){
+
+const r = await fetch(API + "/students")
+
+const data = await r.json()
+
+show(data)
+
+}
+
+
+
+async function add(){
+
+const sid = id.value
+const name1 = name.value
+const year1 = year.value
+const major1 = major.value
+const gpa1 = gpa.value
+const cid = classid.value
+
+
+await fetch(API + "/add2",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body: JSON.stringify({
+
+student_id:sid,
+name:name1,
+birth_year:year1,
+major:major1,
+gpa:gpa1,
+class_id:cid
+
+})
+
+})
+
+load()
+
+}
+
+
+
+async function del(id){
+
+await fetch(API + "/delete2/" + id,{
+
+method:"DELETE"
+
+})
+
+load()
+
+}
+
+
+
+async function search(){
+
+let n = searchtxt.value
+
+const r = await fetch(
+API + "/search/" + n
+)
+
+const data = await r.json()
+
+show(data)
+
+}
+
+
+
+async function stats(){
+
+const r = await fetch(API+"/stats")
+
+const d = await r.json()
+
+stats.innerHTML =
+"Total: "+d.total+
+"<br>Avg GPA: "+d.avg
+
+}
+
+
+
+function exportcsv(){
+
+window.open(API+"/export")
+
+}
+
+</script>
+
+</body>
+</html>
